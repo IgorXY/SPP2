@@ -33,7 +33,7 @@ namespace _2
             {
                 this.methodInfo = mInfo;
                 this.weakReference = wRef;
-                return GenericAction();
+                return mInfo.ReturnType == typeof(void) ? GenericAction() : GenericFunc(); 
             }
             private ParameterExpression[] GetParams() => methodInfo.GetParameters().
                     Select(param => Expression.Parameter(param.ParameterType)).ToArray();
@@ -49,13 +49,25 @@ namespace _2
             private Delegate GenericAction()
             {
                 var _params = GetParams();
-                // .Compile returns delegate
+                // Compile returns delegate
                 return Expression.Lambda(GetActionType(), BlockAction(_params), _params).Compile();
+            }
+            private Delegate GenericFunc()
+            {
+                var _params = GetParams();
+                var returnVariable = Expression.Variable(methodInfo.ReturnType);
+                // Compile returns delegate
+                return Expression.Lambda(GetActionType(),
+           Expression.Block(GetVariablesList(_params).Concat(new[] { returnVariable }),
+          BlockAction(returnVariable,_params), returnVariable),  _params).Compile();
             }
 
             //Call delegate method
             private Expression[] CallAction(ParameterExpression[] _params) =>
                     new Expression[] { CallDelegate(_params) };
+
+            private Expression[] CallFunc(ParameterExpression result, ParameterExpression[] _params) =>
+                   new Expression[] { Expression.Assign(result, CallDelegate(_params)) };
 
             private MemberExpression GetTarget() => Expression.Property(Expression.Convert(
                     Expression.Constant(weakReference), typeof(WeakReference)), "Target");
@@ -70,6 +82,10 @@ namespace _2
             private ConditionalExpression BlockAction(ParameterExpression[] _params) => Expression.IfThen(
                     Expression.IsTrue(GetIsAlive()), Expression.Block(GetVariablesList(_params), 
                         CallAction(_params)));
+
+            private ConditionalExpression BlockAction(ParameterExpression result,ParameterExpression[] _params) => Expression.IfThen(
+                   Expression.IsTrue(GetIsAlive()), Expression.Block(GetVariablesList(_params),
+                       CallFunc(result, _params)));
 
             //Check weakReference property IsAlive
             private MemberExpression GetIsAlive() => Expression.Property(Expression.Convert(

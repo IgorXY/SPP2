@@ -5,7 +5,7 @@ using _2;
 namespace WeakDelegateTest
 {
     [TestClass]
-    public class UnitTest1
+    public class DelegteTestCase
     {
         private TestClass testClass{ get { return new TestClass(); } set { testClass = value; } }
 
@@ -16,7 +16,7 @@ namespace WeakDelegateTest
             Delegate weakReference = new WeakDelegate((Action<int, int>)testWeakClass.Sum);
             
             weakReference.DynamicInvoke(5, 6);
-            Assert.AreEqual(testWeakClass.IntValue, 11);
+            Assert.AreEqual(11, testWeakClass.IntValue);
         }
 
         [TestMethod]
@@ -25,7 +25,7 @@ namespace WeakDelegateTest
             var testWeakClass = testClass;
             Delegate weakReference = new WeakDelegate((Action)testWeakClass.NullFunc);
             weakReference.DynamicInvoke();
-            Assert.AreEqual(testWeakClass.IntValue, 1);
+            Assert.AreEqual(1, testWeakClass.IntValue);
         }
 
         private event Action testEvent;
@@ -63,7 +63,17 @@ namespace WeakDelegateTest
             var testWeakClass = testClass;
             Delegate weakReference = new WeakDelegate((Action<int, string, byte>)testWeakClass.ThreeSum);
             weakReference.DynamicInvoke(1, "2", (byte)3);
-            Assert.AreEqual(testWeakClass.IntValue, 6);
+            Assert.AreEqual(6, testWeakClass.IntValue);
+        }
+
+        private event Func<int> funcIntEvent;
+        [TestMethod]
+        public void TestWeakDelete()
+        {
+            funcIntEvent += (Func<int>)new WeakDelegate((Func<int>)testClass.TestWeakDelete);
+            Assert.AreEqual(1, funcIntEvent.DynamicInvoke());
+            GC.Collect();
+            Assert.AreEqual(0, funcIntEvent.DynamicInvoke());
         }
     }
 }
