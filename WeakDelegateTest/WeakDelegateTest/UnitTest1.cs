@@ -57,5 +57,13 @@ namespace WeakDelegateTest
             Assert.IsFalse(weakDelegate.IsAlive);
         }
 
+        [TestMethod]
+        public void TestThreeSum()
+        {
+            var testWeakClass = testClass;
+            Delegate weakReference = new WeakDelegate((Action<int, string, byte>)testWeakClass.ThreeSum);
+            weakReference.DynamicInvoke(1, "2", (byte)3);
+            Assert.AreEqual(testWeakClass.IntValue, 6);
+        }
     }
 }
