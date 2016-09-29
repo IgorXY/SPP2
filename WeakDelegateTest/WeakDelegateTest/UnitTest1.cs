@@ -19,5 +19,14 @@ namespace WeakDelegateTest
             Assert.AreEqual(testWeakClass.IntValue, 11);
         }
 
+        [TestMethod]
+        public void TestDefaultNullFunc()
+        {
+            var testWeakClass = testClass;
+            Delegate weakReference = new WeakDelegate((Action)testWeakClass.NullFunc);
+            weakReference.DynamicInvoke();
+            Assert.AreEqual(testWeakClass.IntValue, 1);
+        }
+
     }
 }
