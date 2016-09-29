@@ -21,6 +21,7 @@ namespace _2
         {
             weakReference = new WeakReference(del.Target);
             method = del.Method;
+            delegateCreator = new DelegateCreator();
         }
 
         private class DelegateCreator
